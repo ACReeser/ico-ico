@@ -1,0 +1,43 @@
+@charset "UTF-8";
+
+
+.icon-eventful:before { content: '\27'; } /* ''' */
+.icon-eventbrite:before { content: '\7c'; } /* '|' */
+.icon-left-fat:before { content: '\21c7'; } /* '⇇' */
+.icon-up-fat:before { content: '\21c8'; } /* '⇈' */
+.icon-right-fat:before { content: '\21c9'; } /* '⇉' */
+.icon-down-fat:before { content: '\21ca'; } /* '⇊' */
+.icon-left-bold:before { content: '\21d0'; } /* '⇐' */
+.icon-up-bold:before { content: '\21d1'; } /* '⇑' */
+.icon-right-bold:before { content: '\21d2'; } /* '⇒' */
+.icon-stop:before { content: '\25aa'; } /* '▪' */
+.icon-star:before { content: '\2605'; } /* '★' */
+.icon-star-empty:before { content: '\2606'; } /* '☆' */
+.icon-check:before { content: '\2611'; } /* '☑' */
+.icon-heart-empty:before { content: '\2661'; } /* '♡' */
+.icon-heart:before { content: '\2665'; } /* '♥' */
+.icon-attention:before { content: '\26a0'; } /* '⚠' */
+.icon-flight:before { content: '\2708'; } /* '✈' */
+.icon-plus-circled:before { content: '\2795'; } /* '➕' */
+.icon-align-justify:before { content: '\e0d8'; } /* '' */
+.icon-trash:before { content: '\e729'; } /* '' */
+.icon-network:before { content: '\e776'; } /* '' */
+.icon-emo-happy:before { content: '\e800'; } /* '' */
+.icon-emo-unhappy:before { content: '\e802'; } /* '' */
+.icon-emo-surprised:before { content: '\e806'; } /* '' */
+.icon-emo-tongue:before { content: '\e807'; } /* '' */
+.icon-emo-grin:before { content: '\e80c'; } /* '' */
+.icon-emo-saint:before { content: '\e80e'; } /* '' */
+.icon-emo-cry:before { content: '\e80f'; } /* '' */
+.icon-spin1:before { content: '\e830'; } /* '' */
+.icon-spin2:before { content: '\e831'; } /* '' */
+.icon-ie:before { content: '\e843'; } /* '' */
+.icon-check-empty:before { content: '\f096'; } /* '' */
+.icon-gauge:before { content: '\f0e4'; } /* '' */
+.icon-fighter-jet:before { content: '\f0fb'; } /* '' */
+.icon-award:before { content: '🏉'; } /* '\1f3c9' */
+.icon-alert:before { content: '💥'; } /* '\1f4a5' */
+.icon-key:before { content: '🔑'; } /* '\1f511' */
+.icon-lock:before { content: '🔒'; } /* '\1f512' */
+.icon-lock-open:before { content: '🔓'; } /* '\1f513' */
+.icon-wrench:before { content: '🔧'; } /* '\1f527' */
