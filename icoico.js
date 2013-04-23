@@ -1,6 +1,6 @@
 $(document).ready(function(){
 	var stage = new Kinetic.Stage({
-        container: 'container',
+        container: 'icoCanvas',
         width: 578,
         height: 220
       });
