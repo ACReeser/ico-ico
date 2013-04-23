@@ -1,4 +1,4 @@
-﻿window.onload = function(){
+$(document).ready(function(){
 	var stage = new Kinetic.Stage({
         container: 'container',
         width: 578,
@@ -55,4 +55,4 @@
       layer.add(rect);
       layer.add(complexText);
       stage.add(layer);
-}
+});
