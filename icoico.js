@@ -11,7 +11,7 @@ $(document).ready(function(){
         y: 15,
         text: '\ue800',
         fontSize: 30,
-        fontFamily: 'Calibri',
+        fontFamily: 'fontello',
         fill: 'green'
       });
 
