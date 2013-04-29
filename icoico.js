@@ -86,11 +86,11 @@ window.onload = function(){
              }
          }  
       };
-      window.setInterval(collisionDetection, 300);
+      //window.setInterval(collisionDetection, 300);
       //#endregion
       
       // add the shapes to the layer
       layer.add(emot);
-      layer.add(rect);
+      //layer.add(rect);
       stage.add(layer);
 };
