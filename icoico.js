@@ -17,17 +17,30 @@ window.onload = function(){
           fontSize: fontSize||30,
           fill:'black',
         });
-    }
-    this.stateArrow = function(x, y, state){
-        this.state = state;
+    };
+    
+    var winObjs = [];
+    var checkClearState = function(){
+        for(var i = 0; i < winObjs.length; i++){
+            if (winObjs[i].state != winObjs[i].winState){
+                return;
+            }
+        }
+        console.log("you get a star!");
+        return true;
+    };
+    this.stateArrow = function(x, y, initialState, winState){
+        this.state = initialState;
+        this.winState = winState;
         this.stateStrings = ["\u21c8", "\u21c9", "\u21ca", "\u21c7"];
-        this.visual = new icoVisual(x, y, this.stateStrings[state]);
+        this.visual = new icoVisual(x, y, this.stateStrings[initialState]);
         var that = this;
         this.visual.on('mousedown', function(){ 
-            that.changeState(1);});
+            that.changeState(1);
+            checkClearState();});
         this.visual.on('mouseenter', function(){ emotCursor.setFill('orange');});
         this.visual.on('mouseout', function(){ emotCursor.setFill('black');});
-    }
+    };
     this.stateArrow.prototype.changeState = function(adjustment){
         this.state += adjustment;
         if (this.state > 3){
@@ -36,25 +49,53 @@ window.onload = function(){
             this.state = 3;
         }
         this.visual.setText(this.stateStrings[this.state]);
-    }
-    
+    };
+    this.stateText = function(x, y, initialState, winState){
+        this.state = initialState;
+        this.winState = winState;
+        this.stateStrings = ["\ue095", "\ue0ce", "\ue086", ];
+        this.visual = new icoVisual(x, y, this.stateStrings[initialState]);
+        var that = this;
+        this.visual.on('mousedown', function(){ 
+            that.changeState(1);
+            checkClearState();});
+        this.visual.on('mouseenter', function(){ emotCursor.setFill('orange');});
+        this.visual.on('mouseout', function(){ emotCursor.setFill('black');});
+    };
+    this.stateText.prototype.changeState = function(adjustment){
+        this.state += adjustment;
+        if (this.state > 2){
+            this.state = 0;
+        } else if (this.state < 0){
+            this.state = 2;
+        }
+        this.visual.setText(this.stateStrings[this.state]);
+    };
+    var initIcoObj = function(icoObj){
+        layer.add(icoObj.visual);
+        winObjs.push(icoObj);
+    };
     var initStage1 = function(stage, layer){
-      var k1 = new stateArrow(stage.getWidth()/4, 50, 1);
-      var k2 = new stateArrow(stage.getWidth()/4 +50, 50, 2);
-      var k3 = new stateArrow(stage.getWidth()/4 +100, 50, 3);
-      var k4 = new stateArrow(stage.getWidth()/4 +150, 50, 0);
-      var k5 = new stateArrow(stage.getWidth()/4 +200, 50, 1);
-      var k6 = new stateArrow(stage.getWidth()/4 +250, 50, 2);
-      var k7 = new stateArrow(stage.getWidth()/4 +300, 50, 3);
-      var k8 = new stateArrow(stage.getWidth()/4 +350, 50, 0);
-      layer.add(k1.visual);
-      layer.add(k2.visual);
-      layer.add(k3.visual);
-      layer.add(k4.visual);
-      layer.add(k5.visual);
-      layer.add(k6.visual);
-      layer.add(k7.visual);
-      layer.add(k8.visual);
+      var k1 = new stateArrow(stage.getWidth()/4, 50, 1, 0);
+      var k2 = new stateArrow(stage.getWidth()/4 +50, 50, 2, 0);
+      var k3 = new stateArrow(stage.getWidth()/4 +100, 50, 3, 2);
+      var k4 = new stateArrow(stage.getWidth()/4 +150, 50, 0, 2);
+      var k5 = new stateArrow(stage.getWidth()/4 +200, 50, 1, 3);
+      var k6 = new stateArrow(stage.getWidth()/4 +250, 50, 2, 1);
+      var k7 = new stateArrow(stage.getWidth()/4 +300, 50, 3, 3);
+      var k8 = new stateArrow(stage.getWidth()/4 +350, 50, 0, 1);
+      var k9 = new stateText(stage.getWidth()/4 +400, 50, 0, 1);
+      var k10 = new stateText(stage.getWidth()/4 +450, 50, 2, 0);
+      initIcoObj(k1);
+      initIcoObj(k2);
+      initIcoObj(k3);
+      initIcoObj(k4);
+      initIcoObj(k5);
+      initIcoObj(k6);
+      initIcoObj(k7);
+      initIcoObj(k8);
+      initIcoObj(k9);
+      initIcoObj(k10);
     };
       //var simpleText = new Kinetic.Text({
     //    x: stage.getWidth() / 2,
