@@ -20,14 +20,32 @@ window.onload = function(){
     };
     
     var winObjs = [];
+    var levelStar = null;
     var checkClearState = function(){
         for(var i = 0; i < winObjs.length; i++){
             if (winObjs[i].state != winObjs[i].winState){
                 return;
             }
         }
-        console.log("you get a star!");
+        levelStar.award();
         return true;
+    };
+    this.star = function(x, y){
+        this.visual = new icoVisual(x, y, "\u2605");
+        this.visual.setFill('#f0b613');
+        this.visual.setOpacity(0);
+        this.visual.setStroke('black');
+    };
+    this.star.prototype.award = function(){
+        TweenLite.to(this.visual, 1, {
+        setOpacity: 1,
+        onUpdate: function() {
+          layer.draw(); 
+        }        
+        });
+        this.visual.on('mouseover', function(){
+            nextStage();
+        });
     };
     this.stateArrow = function(x, y, initialState, winState){
         this.state = initialState;
@@ -75,6 +93,17 @@ window.onload = function(){
         layer.add(icoObj.visual);
         winObjs.push(icoObj);
     };
+    var nextStage = function(){
+        levelStar.visual.on('mouseover', function(){});
+        TweenLite.to(levelStar.visual, .5, {
+        setOpacity: 0,
+        onUpdate: function() {
+          layer.draw(); 
+        }        
+        });
+        winObjs.forEach(function(obj){obj.visual.destroy(); delete obj;});
+        winObjs.forEach(function(undef, i){winObjs.splice(i, 1)});
+    };
     var initStage1 = function(stage, layer){
       var k1 = new stateArrow(stage.getWidth()/4, 50, 1, 0);
       var k2 = new stateArrow(stage.getWidth()/4 +50, 50, 2, 0);
@@ -86,6 +115,7 @@ window.onload = function(){
       var k8 = new stateArrow(stage.getWidth()/4 +350, 50, 0, 1);
       var k9 = new stateText(stage.getWidth()/4 +400, 50, 0, 1);
       var k10 = new stateText(stage.getWidth()/4 +450, 50, 2, 0);
+      levelStar = new star(stage.getWidth()/2, 100);
       initIcoObj(k1);
       initIcoObj(k2);
       initIcoObj(k3);
@@ -96,15 +126,8 @@ window.onload = function(){
       initIcoObj(k8);
       initIcoObj(k9);
       initIcoObj(k10);
+      layer.add(levelStar.visual);
     };
-      //var simpleText = new Kinetic.Text({
-    //    x: stage.getWidth() / 2,
-      //  y: 15,
-    //    fontFamily: 'fontello',
-     //   text: '\uE800 alpha blue \u2708 \uF0FB',
-      //  fontSize: 30,
-    //    fill: 'green'
-     // });
      
      var emot = new Kinetic.Text({
         x: stage.getWidth() / 2 +15,
@@ -197,5 +220,5 @@ window.onload = function(){
       stage.add(glass);
       initStage1(stage, layer);
       glass.add(emotCursor);
-      layer.add(emot);
+      glass.add(emot);
 };
