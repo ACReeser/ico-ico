@@ -18,17 +18,74 @@ window.onload = function(){
           fill:'black',
         });
     };
+    var center = function(visual, xoffset, yoffset){
+        xoffset = xoffset || 0;
+        yoffset = yoffset || 0;
+        visual.setX((stage.getWidth()/2)-(visual.getWidth()/2)+xoffset);
+        visual.setY((stage.getHeight()/2)-(visual.getHeight()/2)+yoffset);
+    };
     
     var winObjs = [];
     var levelStar = null;
     var checkClearState = function(){
         for(var i = 0; i < winObjs.length; i++){
-            if (winObjs[i].state != winObjs[i].winState){
-                return;
+            if (winObjs[i].state){
+                if (winObjs[i].state != winObjs[i].winState){
+                    return false;
+                }
+            } else if (winObjs[i].checkWinCondition) {
+                if (!winObjs[i].checkWinCondition()){
+                    return false;
+                }
             }
         }
         levelStar.award();
         return true;
+    };
+    var currentLevel = -1;
+    var levelCreators = [];
+    var cursorClass = function(){
+        this.state = -1;
+        this.visual = new Kinetic.Text({
+        x: stage.getWidth() / 2,
+        y: 15,
+        fontFamily: 'fontello',
+        text: '',
+        fontSize: 18,
+        fill: 'black',
+        name:'cursor',          
+      });
+    };
+    cursorClass.prototype.isState = function(){return this.state === 0;};
+    cursorClass.prototype.isAction = function(){return this.state == 1;};
+    cursorClass.prototype.isMove = function(){return this.state == 2;};
+    cursorClass.prototype.makeState = function(){
+        this.state = 0;
+        this.visual.setText("\u2699");
+    };
+    cursorClass.prototype.makeAction = function(){
+        this.state = 1;
+        this.visual.setText("\u26a1");
+    };
+    cursorClass.prototype.makeMove = function(){
+        this.state = 2;
+        this.visual.setText("f0b2");
+    };
+    cursorClass.prototype.highlight = function(){
+      switch(this.state){
+          case 0:
+              this.visual.setFill("#504c75");
+              break;
+          case 1:
+              this.visual.setFill("orange");
+              break;
+          case 2:
+              this.visual.setFill("#40070b");
+              break;
+      }  
+    };
+    cursorClass.prototype.unhighlight = function(){
+        this.visual.setFill("black");
     };
     this.star = function(x, y){
         this.visual = new icoVisual(x, y, "\u2605");
@@ -44,7 +101,21 @@ window.onload = function(){
         }        
         });
         this.visual.on('mouseover', function(){
+            clearStage();
             nextStage();
+        });
+    };
+    this.stateTool = function(x, y, isPersistant){
+        this.visual = new icoVisual(x, y, "\u2699");
+        var that = this;
+        this.visual.on('mouseover', function(){
+            if (!emotCursor.isState()){
+                emotCursor.makeState();
+            }
+            if (!isPersistant){
+                that.visual.destroy();
+                delete that;
+            }
         });
     };
     this.stateArrow = function(x, y, initialState, winState){
@@ -56,8 +127,8 @@ window.onload = function(){
         this.visual.on('mousedown', function(){ 
             that.changeState(1);
             checkClearState();});
-        this.visual.on('mouseenter', function(){ emotCursor.setFill('orange');});
-        this.visual.on('mouseout', function(){ emotCursor.setFill('black');});
+        this.visual.on('mouseenter', function(){ emotCursor.highlight();});
+        this.visual.on('mouseout', function(){ emotCursor.unhighlight();});
     };
     this.stateArrow.prototype.changeState = function(adjustment){
         this.state += adjustment;
@@ -77,8 +148,8 @@ window.onload = function(){
         this.visual.on('mousedown', function(){ 
             that.changeState(1);
             checkClearState();});
-        this.visual.on('mouseenter', function(){ emotCursor.setFill('orange');});
-        this.visual.on('mouseout', function(){ emotCursor.setFill('black');});
+        this.visual.on('mouseenter', function(){ emotCursor.highlight();});
+        this.visual.on('mouseout', function(){ emotCursor.unhighlight();});
     };
     this.stateText.prototype.changeState = function(adjustment){
         this.state += adjustment;
@@ -89,11 +160,54 @@ window.onload = function(){
         }
         this.visual.setText(this.stateStrings[this.state]);
     };
+    this.circle = function(x, y, winObjs){
+        this.visual = new icoVisual(x, y, "\ue830");
+        this.visual.setScale(4);
+        this.winObjs = winObjs;
+        this.currentObjs = [];
+        var that = this;
+        this.visual.on('mouseover', function(){
+            if (emotCursor.hasMove && emotCursor.movingObj){
+                if (that.currentObjs.indexOf(emotCursor.movingObj) == -1){
+                    that.currentObjs.push(emotCursor.movingObj);
+                    checkClearState();
+                }
+            }
+        });
+        this.visual.on('mouseout', function(){
+            if (emotCursor.hasMove && emotCursor.movingObj){
+                var indexy = that.currentObjs.indexOf(emotCursor.movingObj);
+                if (indexy != -1){
+                    that.currentObjs.splice(indexy, 1);
+                }
+            }
+        });
+    };
+    this.circle.prototype.checkWinCondition = function(){
+        for(var i = 0; i < this.winObjs.length; i++){
+            if (this.currentObjs.indexOf(this.winObjs[i]) == -1){
+                return false;
+            }
+        }
+        return true;
+    };
+    this.moveUser = function(x, y, badgeUnicode){
+        this.visual = new icoVisual(x, y, String.fromCharCode( 0x01F464));
+        this.badge = new icoVisual(x+10, y+10, badgeUnicode);
+        this.selectable = true;
+    };
+    this.moveUser.prototype.init = function(layer){
+        layer.add(this.visual);
+        layer.add(this.badge);
+    };
+    
+    
+    
     var initIcoObj = function(icoObj){
         layer.add(icoObj.visual);
         winObjs.push(icoObj);
     };
-    var nextStage = function(){
+    var clearStage = function(){
         levelStar.visual.on('mouseover', function(){});
         TweenLite.to(levelStar.visual, .5, {
         setOpacity: 0,
@@ -103,6 +217,16 @@ window.onload = function(){
         });
         winObjs.forEach(function(obj){obj.visual.destroy(); delete obj;});
         winObjs.forEach(function(undef, i){winObjs.splice(i, 1)});
+    };
+    var nextStage = function(){
+        currentLevel++;
+        levelCreators[currentLevel](stage, layer);
+    };
+    var initStage2 = function(stage, layer){
+        var circ = new circle(200, 200, []);
+        var so = new moveUser(100, 100, "\u2665");
+        so.init(layer);
+        initIcoObj(circ);
     };
     var initStage1 = function(stage, layer){
       var k1 = new stateArrow(stage.getWidth()/4, 50, 1, 0);
@@ -115,7 +239,10 @@ window.onload = function(){
       var k8 = new stateArrow(stage.getWidth()/4 +350, 50, 0, 1);
       var k9 = new stateText(stage.getWidth()/4 +400, 50, 0, 1);
       var k10 = new stateText(stage.getWidth()/4 +450, 50, 2, 0);
-      levelStar = new star(stage.getWidth()/2, 100);
+      levelStar = new star(0, 0);
+      center(levelStar.visual);
+      var tool = new stateTool(200, 200);
+      layer.add(tool.visual);
       initIcoObj(k1);
       initIcoObj(k2);
       initIcoObj(k3);
@@ -128,6 +255,29 @@ window.onload = function(){
       initIcoObj(k10);
       layer.add(levelStar.visual);
     };
+    var initGame = function(stage, layer){
+        var icoTitle = new icoVisual(0,0, "\ue086co-\ue086co");
+        var start = new icoVisual(0,0, "\u2605");
+        center(icoTitle, 0, -100);
+        center(start, 0, 100);
+        start.setFill('#f0b613');
+        start.setStroke('black');
+        layer.add(icoTitle);
+        layer.add(start);
+        var v1 = new Kinetic.Tween({
+            node: icoTitle, 
+            duration: 0.6,
+            opacity: 0,
+            onFinish:function(){
+                icoTitle.destroy();
+                nextStage();
+            }
+        });
+        start.on('mouseover', function(){
+            start.destroy();
+            v1.play();
+        });
+    };
      
      var emot = new Kinetic.Text({
         x: stage.getWidth() / 2 +15,
@@ -138,42 +288,15 @@ window.onload = function(){
         fill: 'black',
         name:'emot',
       });
-      var emotCursor = new Kinetic.Text({
-        x: stage.getWidth() / 2,
-        y: 15,
-        fontFamily: 'fontello',
-        text: '\u26A0',
-        fontSize: 18,
-        fill: 'black',
-        name:'cursor',          
-      });
       
       emot.oncollide = function(collider){
           console.log(collider.name)
       };
-      
-      var rect = new Kinetic.Rect({
-        x: 100,
-        y: 60,
-        stroke: '#555',
-        strokeWidth: 5,
-        fill: '#ddd',
-        width: 380,
-        height: 100,
-        shadowColor: 'black',
-        shadowBlur: 10,
-        shadowOffset: [10, 10],
-        shadowOpacity: 0.2,
-        cornerRadius: 10,
-      });
-      rect.name = "rect";
-      rect.oncollide = function(){
-        console.log("Rect hit!");  
-      };
+      emotCursor = new cursorClass();
       
       var moveEmot = function(mouseoverEvt){
-          emotCursor.setX(mouseoverEvt.offsetX);
-          emotCursor.setY(mouseoverEvt.offsetY);
+          emotCursor.visual.setX(mouseoverEvt.offsetX);
+          emotCursor.visual.setY(mouseoverEvt.offsetY);
           emot.setX( mouseoverEvt.offsetX+15);
           emot.setY( mouseoverEvt.offsetY+15);
           emot.getStage().draw();          
@@ -214,11 +337,13 @@ window.onload = function(){
       //window.setInterval(collisionDetection, 300);
       //#endregion
       
+      levelCreators = [initStage1, initStage2];
       // add the shapes to the layer
       //layer.add(rect);
       stage.add(layer);
       stage.add(glass);
-      initStage1(stage, layer);
-      glass.add(emotCursor);
+      // initStage1(stage, layer);
+      glass.add(emotCursor.visual);
       glass.add(emot);
+      initGame(stage, layer);
 };
