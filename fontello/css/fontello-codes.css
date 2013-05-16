@@ -75,7 +75,7 @@
 .icon-award:before { content: '🏉'; } /* '\1f3c9' */
 .icon-thumbs-up:before { content: '👍'; } /* '\1f44d' */
 .icon-thumbs-down:before { content: '👎'; } /* '\1f44e' */
-.icon-user:before { content: '👤'; } /* '\1f464' */
+.icon-user:before { content: '\e801'; } /* '' */
 .icon-alert:before { content: '💥'; } /* '\1f4a5' */
 .icon-water:before { content: '💦'; } /* '\1f4a6' */
 .icon-droplet:before { content: '💧'; } /* '\1f4a7' */

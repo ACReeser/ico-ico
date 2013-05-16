@@ -1,4 +1,5 @@
 window.onload = function(){
+    
 	var stage = new Kinetic.Stage({
         container: 'icoCanvas',
         width: 768,
@@ -69,7 +70,7 @@ window.onload = function(){
     };
     cursorClass.prototype.makeMove = function(){
         this.state = 2;
-        this.visual.setText("f0b2");
+        this.visual.setText("\uf0b2");
     };
     cursorClass.prototype.highlight = function(){
       switch(this.state){
@@ -86,6 +87,11 @@ window.onload = function(){
     };
     cursorClass.prototype.unhighlight = function(){
         this.visual.setFill("black");
+    };
+    cursorClass.prototype.grabObject = function(obj){
+        this.moveObj = obj;
+        // this.moveOffsetX = this.visual.getX() - obj.visual.getX();
+        // this.moveOffsetY = this.visual.getY() - obj.visual.getY();
     };
     this.star = function(x, y){
         this.visual = new icoVisual(x, y, "\u2605");
@@ -111,6 +117,19 @@ window.onload = function(){
         this.visual.on('mouseover', function(){
             if (!emotCursor.isState()){
                 emotCursor.makeState();
+            }
+            if (!isPersistant){
+                that.visual.destroy();
+                delete that;
+            }
+        });
+    };
+    this.moveTool = function(x, y, isPersistant){
+        this.visual = new icoVisual(x, y, "\uf0b2");
+        var that = this;
+        this.visual.on('mouseover', function(){
+            if (!emotCursor.isMove()){
+                emotCursor.makeMove();
             }
             if (!isPersistant){
                 that.visual.destroy();
@@ -192,16 +211,32 @@ window.onload = function(){
         return true;
     };
     this.moveUser = function(x, y, badgeUnicode){
-        this.visual = new icoVisual(x, y, String.fromCharCode( 0x01F464));
-        this.badge = new icoVisual(x+10, y+10, badgeUnicode);
+        this.group = new Kinetic.Group({
+        x: x,
+        y: y,
+        draggable: true,
+      });
+        this.user = new icoVisual(0, 0, "\ue801");
+        this.group.add(this.user);
+        this.badge = new icoVisual(25, 20, badgeUnicode);
+        this.badge.setScale(0.6);
+        this.group.add(this.badge);
         this.selectable = true;
+        this.group.entity = this;
+        this.group.on('mousedown', this.startDrag);
+        this.group.on('mouseover', function(){emotCursor.highlight();});
+        this.group.on('mouseleave', function(){emotCursor.unhighlight();});
     };
     this.moveUser.prototype.init = function(layer){
-        layer.add(this.visual);
-        layer.add(this.badge);
+        layer.add(this.group);
     };
-    
-    
+    this.moveUser.prototype.startDrag = function(){
+        emotCursor.grabObject(this.entity);
+    };
+    this.moveUser.prototype.moveTo = function(x, y){
+        // this.group.setX(x);
+        // this.group.setY(y);
+    };    
     
     var initIcoObj = function(icoObj){
         layer.add(icoObj.visual);
@@ -225,6 +260,8 @@ window.onload = function(){
     var initStage2 = function(stage, layer){
         var circ = new circle(200, 200, []);
         var so = new moveUser(100, 100, "\u2665");
+        var mo = new moveTool(200, 100);
+        layer.add(mo.visual);
         so.init(layer);
         initIcoObj(circ);
     };
@@ -299,13 +336,15 @@ window.onload = function(){
           emotCursor.visual.setY(mouseoverEvt.offsetY);
           emot.setX( mouseoverEvt.offsetX+15);
           emot.setY( mouseoverEvt.offsetY+15);
+          if (emotCursor.moveObj){
+           //   emotCursor.moveObj.moveTo(mouseoverEvt.offsetX+emotCursor.moveOffsetX, mouseoverEvt.offsetY+emotCursor.moveOffsetY);
+          }
           emot.getStage().draw();          
       };
       
       $('#icoCanvas').mouseover(moveEmot);
 
       $('#icoCanvas').mousemove(moveEmot);
-      
       //#region physics
       var checkCollide = function(pointX, pointY, objectx, objecty, objectw, objecth) { // pointX, pointY belong to one rectangle, while the object variables belong to another rectangle
           var oTop = objecty;
@@ -337,7 +376,7 @@ window.onload = function(){
       //window.setInterval(collisionDetection, 300);
       //#endregion
       
-      levelCreators = [initStage1, initStage2];
+      levelCreators = [initStage2, initStage1];
       // add the shapes to the layer
       //layer.add(rect);
       stage.add(layer);
