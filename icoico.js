@@ -25,8 +25,18 @@ window.onload = function(){
         visual.setX((stage.getWidth()/2)-(visual.getWidth()/2)+xoffset);
         visual.setY((stage.getHeight()/2)-(visual.getHeight()/2)+yoffset);
     };
-    
+    function iconCircleCollision(c1, c2) {
+          var dx = c1.getX() - c2.getX();
+          var dy = c1.getY() - c2.getY();
+          var c1Min = (c1.getWidth() < c1.getHeight()) ? c1.getWidth() : c1.getHeight();
+          var c2Min = (c2.getWidth() < c2.getHeight()) ? c2.getWidth() : c2.getHeight();
+          var radiiSum = c1Min/2 + c2Min;
+          console.log(dx + "/" + dy + ": " + radiiSum);
+          return ((dx * dx + dy * dy) < radiiSum * radiiSum);
+      }
+      
     var winObjs = [];
+    var props = [];
     var levelStar = null;
     var checkClearState = function(){
         for(var i = 0; i < winObjs.length; i++){
@@ -179,28 +189,32 @@ window.onload = function(){
         }
         this.visual.setText(this.stateStrings[this.state]);
     };
-    this.circle = function(x, y, winObjs){
-        this.visual = new icoVisual(x, y, "\ue830");
-        this.visual.setScale(4);
+    this.circle = function(x, y, badge, winObjs){
+        this.visual = new Kinetic.Group({x:x, y:y});
+        this.circleVisual = icoVisual(0, 0, "\ue830");
+        this.badgeVisual = icoVisual(100, 100, badge);
+        this.circleVisual.setScale(4);
+        this.visual.add(this.circleVisual);
+        this.visual.add(this.badgeVisual);
         this.winObjs = winObjs;
+        this.lastPushed;
         this.currentObjs = [];
         var that = this;
-        this.visual.on('mouseover', function(){
-            if (emotCursor.hasMove && emotCursor.movingObj){
-                if (that.currentObjs.indexOf(emotCursor.movingObj) == -1){
-                    that.currentObjs.push(emotCursor.movingObj);
-                    checkClearState();
-                }
-            }
+        this.winObjs.forEach(function(user){
+            user.parentCircle = that;    
         });
-        this.visual.on('mouseout', function(){
-            if (emotCursor.hasMove && emotCursor.movingObj){
-                var indexy = that.currentObjs.indexOf(emotCursor.movingObj);
-                if (indexy != -1){
-                    that.currentObjs.splice(indexy, 1);
-                }
-            }
-        });
+    };
+    this.circle.prototype.addUser = function(){
+        if (this.currentObjs.indexOf(emotCursor.moveObj) == -1){
+            this.currentObjs.push(emotCursor.moveObj);
+            checkClearState();
+        }
+    };
+    this.circle.prototype.dropUser = function(){
+        var indexy = this.currentObjs.indexOf(emotCursor.moveObj);
+        if (indexy != -1){
+            this.currentObjs.splice(indexy, 1);
+        }
     };
     this.circle.prototype.checkWinCondition = function(){
         for(var i = 0; i < this.winObjs.length; i++){
@@ -211,36 +225,55 @@ window.onload = function(){
         return true;
     };
     this.moveUser = function(x, y, badgeUnicode){
-        this.group = new Kinetic.Group({
+        this.visual = new Kinetic.Group({
         x: x,
         y: y,
-        draggable: true,
+        draggable: false,
       });
         this.user = new icoVisual(0, 0, "\ue801");
-        this.group.add(this.user);
+        this.visual.add(this.user);
         this.badge = new icoVisual(25, 20, badgeUnicode);
         this.badge.setScale(0.6);
-        this.group.add(this.badge);
+        this.visual.add(this.badge);
         this.selectable = true;
-        this.group.entity = this;
-        this.group.on('mousedown', this.startDrag);
-        this.group.on('mouseover', function(){emotCursor.highlight();});
-        this.group.on('mouseleave', function(){emotCursor.unhighlight();});
-    };
-    this.moveUser.prototype.init = function(layer){
-        layer.add(this.group);
+        this.visual.entity = this;
+        var self = this;
+        this.visual.on('mousedown', self.startDrag);
+        this.visual.on('dragend', self.endDrag);
+        this.visual.on('mouseover', self.checkDrag);
+        this.visual.on('mouseleave', function(){emotCursor.unhighlight();});
     };
     this.moveUser.prototype.startDrag = function(){
-        emotCursor.grabObject(this.entity);
+        if (emotCursor.isMove()){
+            emotCursor.grabObject(this.entity);
+        }
     };
-    this.moveUser.prototype.moveTo = function(x, y){
-        // this.group.setX(x);
-        // this.group.setY(y);
+    this.moveUser.prototype.endDrag = function(){
+        if (emotCursor.isMove() && this.entity.parentCircle){
+            if (iconCircleCollision(this.entity.user, this.entity.parentCircle.circleVisual)){
+                this.entity.parentCircle.addUser();
+            } else {
+                this.entity.parentCircle.dropUser();                
+            }
+            emotCursor.moveObj = null;
+        }
+    };
+    this.moveUser.prototype.checkDrag = function(){
+        if (emotCursor.isMove()){
+            emotCursor.highlight();
+            this.setDraggable(true);
+        } else {
+            this.setDraggable(false);            
+        }
     };    
     
     var initIcoObj = function(icoObj){
         layer.add(icoObj.visual);
         winObjs.push(icoObj);
+    };
+    var initIcoProp = function(icoObj){
+        layer.add(icoObj.visual);
+        props.push(icoObj);
     };
     var clearStage = function(){
         levelStar.visual.on('mouseover', function(){});
@@ -252,18 +285,39 @@ window.onload = function(){
         });
         winObjs.forEach(function(obj){obj.visual.destroy(); delete obj;});
         winObjs.forEach(function(undef, i){winObjs.splice(i, 1)});
+        props.forEach(function(obj){obj.visual.destroy(); delete obj;});
+        props.forEach(function(undef, i){winObjs.splice(i, 1)});
     };
     var nextStage = function(){
         currentLevel++;
         levelCreators[currentLevel](stage, layer);
     };
     var initStage2 = function(stage, layer){
-        var circ = new circle(200, 200, []);
         var so = new moveUser(100, 100, "\u2665");
+        var stu = new moveUser(360, 290, "\ue81a");
+        var mech = new moveUser(60, 130, "\ue828");
+        var ticket = new moveUser(20, 400, "\ue81b");
+        var clap = new moveUser(200, 350, "\ue82d");
+        var music = new moveUser(200, 30, "\u266a");
+        var paper = new moveUser(500, 30, "\ue80b");
         var mo = new moveTool(200, 100);
+        var circHeart = new circle(200, 200, "\ue80a", [so, stu]);
+        var circMovie = new circle(450, 80, "\ue804", [ticket, clap]);
         layer.add(mo.visual);
-        so.init(layer);
-        initIcoObj(circ);
+        initIcoProp(so);
+        initIcoProp(stu);
+        initIcoProp(mech);
+        initIcoProp(ticket);
+        initIcoProp(clap);
+        initIcoProp(music);
+        initIcoProp(paper);
+        initIcoObj(circHeart);
+        initIcoObj(circMovie);
+        levelStar = new star(0,0);
+        center(levelStar.visual);
+        layer.add(levelStar.visual);
+        circHeart.visual.moveToBottom();
+        circMovie.visual.moveToBottom();
     };
     var initStage1 = function(stage, layer){
       var k1 = new stateArrow(stage.getWidth()/4, 50, 1, 0);
