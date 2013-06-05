@@ -1,6 +1,20 @@
 (function( icoico, $, undefined ) {
     var ico = icoico;
-    
+    var iconCache = {};
+    var iconClasses = document.styleSheets[0].rules || document.styleSheets[0].cssRules;
+    ico.getIconText = function(iconName) {
+        if (iconCache[iconName]){
+            return iconCache[iconName];
+        } else {
+            var className = ".icon-"+iconName+"::before";
+            for(var x=0;x<iconClasses.length;x++) {
+                if(iconClasses[x].selectorText==className) {
+                        return (iconClasses[x].style.content);
+                }
+            }
+            return "!";
+        }
+    }
     ico.user = function(x, y, badgeUnicode){
         this.visual = new Kinetic.Group({
             x: x,

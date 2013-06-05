@@ -15,8 +15,15 @@
     ico.levelCreators = [];
     
     ico.initStage3 = function(stage, layer){
-        var shopper = new ico.user(200, 200, "\ue81a");   
-        var cart = new ico.cart(300, 300, ["", "", ""], 2)
+        var shopper = new ico.user(200, 200, ico.getIconText("headphones"));   
+        var cart = new ico.cart(300, 300, [ico.getIconText("magnet"), ico.getIconText("fighter-jet"), ico.getIconText("cd")], 2);
+        var st = new ico.stateTool(200, 350);
+        ico.initIcoProp(shopper);
+        ico.initIcoObj(cart);
+        ico.levelStar = new ico.star(0,0);
+        ico.center(ico.levelStar.visual);
+        ico.layer.add(ico.levelStar.visual);
+        ico.layer.add(st.visual);
     };
     
     ico.initStage2 = function(stage, layer){
@@ -28,7 +35,7 @@
         var music = new ico.moveUser(200, 30, "\u266a");
         var paper = new ico.moveUser(500, 30, "\ue80b");
         var mo = new ico.moveTool(200, 100);
-        var circHeart = new ico.circle(200, 200, "\ue80a", [so, stu]);
+        var circHeart = new ico.circle(200, 200, ico.getIconText("heart"), [so, stu]);
         var circMovie = new ico.circle(450, 80, "\ue804", [ticket, clap]);
         ico.layer.add(mo.visual);
         ico.initIcoProp(so);
@@ -43,7 +50,9 @@
         ico.levelStar = new ico.star(0,0);
         ico.center(ico.levelStar.visual);
         ico.layer.add(ico.levelStar.visual);
+        ico.circHeart.circleVisual.moveToBottom();
         ico.circHeart.visual.moveToBottom();
+        ico.circMovie.circleVisual.moveToBottom();
         ico.circMovie.visual.moveToBottom();
     };
     ico.initStage1 = function(stage, layer){
@@ -134,7 +143,7 @@ window.onload = function(){
     //window.setInterval(collisionDetection, 300);
     //#endregion
     
-    icoico.levelCreators = [icoico.initStage2, icoico.initStage1];
+    icoico.levelCreators = [icoico.initStage3, icoico.initStage2, icoico.initStage1];
     icoico.stage.add(icoico.layer);
     icoico.stage.add(icoico.glass);
     icoico.glass.add(icoico.cursor.visual);

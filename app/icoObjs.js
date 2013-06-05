@@ -5,21 +5,27 @@
         this.state = initialState || 0;
         this.winState = winState;
         this.stateStrings = badges;
-        this.visual = new ico.visual(x, y, "\ue823");
-        this.badge = new ico.visual(x, y-45, this.stateStrings[this.state]);
+        this.visual = new Kinetic.Group({
+            x: x,
+            y:y,
+            });
+        this.cartVisual = ico.visual(0, 0, ico.getIconText("trash"));
+        this.badge = new ico.visual(0, -45, this.stateStrings[this.state]);
+        this.visual.add(this.badge);
+        this.visual.add(this.cartVisual);
         var that = this;
-        this.visual.on('mousedown', function(){ 
+        this.cartVisual.on('mousedown', function(){ 
             if (ico.cursor.isState()){
                 that.changeState(1);
                 ico.checkClearState();
             }
         });
-        this.visual.on('mouseenter', function(){ 
+        this.cartVisual.on('mouseenter', function(){ 
             if (ico.cursor.isState()){
                 ico.cursor.highlight();
             }
         });
-        this.visual.on('mouseout', function(){ 
+        this.cartVisual.on('mouseout', function(){ 
             if (ico.cursor.isState()){
                 ico.cursor.unhighlight();                
             }            
