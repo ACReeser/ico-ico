@@ -9,7 +9,7 @@
             var className = ".icon-"+iconName+"::before";
             for(var x=0;x<iconClasses.length;x++) {
                 if(iconClasses[x].selectorText==className) {
-                        return (iconClasses[x].style.content);
+                        return (iconClasses[x].style.content[1]); //because it's 'X'
                 }
             }
             return "!";
